@@ -127,7 +127,7 @@ export async function forceSourceStatus(
       : statusCommand;
 
   if (commandVersion === CommandVersion.Legacy) {
-    // Execute via SFDX CLI
+    // Execute using SFDX CLI
     const executor = new ForceSourceStatusExecutor(flag, command);
     const commandlet = new SfdxCommandlet(
       workspaceChecker,
@@ -136,7 +136,7 @@ export async function forceSourceStatus(
     );
     await commandlet.run();
   } else {
-    // Execute via Source Tracking Library
+    // Execute using Source Tracking library
     // 1. get Status from STL
     const projectPath = getRootWorkspacePath();
     const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
@@ -146,6 +146,7 @@ export async function forceSourceStatus(
       org,
       project
     };
+
     // Change the environment to get the node process to use
     // the correct current working directory (process.cwd).
     // Without this, process.cwd() returns "'/'" and SourceTracking.create() fails.
