@@ -88,11 +88,14 @@ export class TrackingService {
 
   private constructor() {}
 
-  public getSourceStatusSummary = async (): Promise<string> => {
+  public getSourceStatusSummary = async ({
+    local = true,
+    remote = true
+  }): Promise<string> => {
     const tracking = await this.tracking();
     const statusOutputRows = await tracking.getStatus({
-      local: true,
-      remote: true
+      local,
+      remote
     });
     const summary: SourceStatusSummary = new SourceStatusSummary(
       statusOutputRows

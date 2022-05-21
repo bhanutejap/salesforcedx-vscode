@@ -122,7 +122,13 @@ export async function forceSourceStatus(
     await commandlet.run();
   } else {
     // Execute using Source Tracking library
-    const sourceStatusSummary: string = await TrackingService.instance.getSourceStatusSummary();
+    const sourceStatusOptions = {
+      local: true,
+      remote: !(flag && flag === '--local')
+    };
+    const sourceStatusSummary: string = await TrackingService.instance.getSourceStatusSummary(
+      sourceStatusOptions
+    );
     channelService.appendLine('Source Status');
     channelService.appendLine(sourceStatusSummary);
     channelService.showChannelOutput();
