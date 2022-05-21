@@ -40,7 +40,7 @@ interface FormattedStatusResult {
 class SourceStatusSummary {
   constructor(private rows: StatusOutputRow[]) {}
 
-  public asString(): string {
+  public format(): string {
     const convertedStatusResultsArray = this.rows.map(result =>
       resultConverter(result)
     );
@@ -72,6 +72,7 @@ class SourceStatusSummary {
     return table;
   }
 }
+
 export class TrackingService {
   private static _instance: TrackingService;
   private static _tracking: SourceTracking;
@@ -97,7 +98,7 @@ export class TrackingService {
     const summary: SourceStatusSummary = new SourceStatusSummary(
       statusOutputRows
     );
-    return summary.asString();
+    return summary.format();
   };
 
   private async tracking() {
