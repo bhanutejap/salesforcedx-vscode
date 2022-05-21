@@ -122,12 +122,9 @@ export async function forceSourceStatus(
     await commandlet.run();
   } else {
     // Execute using Source Tracking library
-    // channelService.appendLine(table);
+    const sourceStatusSummary: string = await TrackingService.instance.getSourceStatusSummary();
     channelService.appendLine('Source Status');
-    channelService.appendLine(await TrackingService.getSourceStatusSummary());
+    channelService.appendLine(sourceStatusSummary);
     channelService.showChannelOutput();
-
-    // Questions:
-    // * Looked at ForceFunctionStartExecutor.  Still don't get it.
   }
 }

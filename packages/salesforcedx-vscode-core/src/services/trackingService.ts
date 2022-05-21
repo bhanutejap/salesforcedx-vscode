@@ -77,6 +77,7 @@ class SourceStatusSummary {
 }
 export class TrackingService {
   private static _instance: TrackingService;
+  private static _tracking: SourceTracking;
 
   public static get instance() {
     if (TrackingService._instance === undefined) {
@@ -88,7 +89,25 @@ export class TrackingService {
   private constructor() {}
 
   public getSourceStatusSummary = async (): Promise<string> => {
-    // 1. get Status from STL
+    const tracking = await this.tracking();
+    const statusOutputRows = await tracking.getStatus({
+      local: true,
+      remote: true
+    });
+    const summary: SourceStatusSummary = new SourceStatusSummary(
+      statusOutputRows
+    );
+    return summary.asString();
+  };
+
+  private async tracking() {
+    if (TrackingService._tracking === undefined) {
+      TrackingService._tracking = await this.getSourceTracking();
+    }
+    return TrackingService._tracking;
+  }
+
+  private async getSourceTracking(): Promise<SourceTracking> {
     const projectPath = getRootWorkspacePath();
     const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
     const org: Org = await Org.create({ aliasOrUsername: username });
@@ -103,23 +122,14 @@ export class TrackingService {
     // Without this, process.cwd() returns "'/'" and SourceTracking.create() fails.
     process.chdir(projectPath);
     const tracking = await SourceTracking.create(options);
-    const statusOutputRows = await tracking.getStatus({
-      local: true,
-      remote: true
-    });
-
-    const summary: SourceStatusSummary = new SourceStatusSummary(
-      statusOutputRows
-    );
-    return summary.asString();
-  };
+    return tracking;
+  }
 }
 
 /**
  * STL provides a more useful json output.
  * This function makes it consistent with the Status command's json.
  */
-// /*
 const resultConverter = (input: StatusOutputRow): StatusResult => {
   const { fullName, type, ignored, filePath, conflict } = input;
   const origin = originMap.get(input.origin) || 'Local';
@@ -151,7 +161,6 @@ const stateMap = new Map<StatusOutputRow['state'], StatusResult['actualState']>(
     ['nondelete', 'Changed']
   ]
 );
-// */
 
 // sort order is state, type, fullname
 const rowSortFunction = (a: StatusResult, b: StatusResult): number => {
