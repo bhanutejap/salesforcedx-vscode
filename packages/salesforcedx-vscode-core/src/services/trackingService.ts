@@ -41,15 +41,19 @@ class SourceStatusSummary {
   constructor(private rows: StatusOutputRow[]) {}
 
   public asString(): string {
-    // 2. convert response to formatted output
     const convertedStatusResultsArray = this.rows.map(result =>
       resultConverter(result)
     );
 
-    // 3. show output in channel
     if (convertedStatusResultsArray.length === 0) {
       return 'No local or remote changes found.';
     }
+
+    // sort the rows and create a table
+    const sortedStatusRows = convertedStatusResultsArray.sort(rowSortFunction);
+    const formattedStatusResults = sortedStatusRows.forEach(row =>
+      getFormattedStatusResult(row)
+    );
 
     const baseColumns = [
       { label: 'STATE', key: 'state' },
@@ -60,12 +64,6 @@ class SourceStatusSummary {
     const columns = convertedStatusResultsArray.some(row => row.ignored)
       ? [{ label: 'IGNORED', key: 'ignored' }, ...baseColumns]
       : baseColumns;
-
-    // sort the rows and create a table
-    const sortedStatusRows = convertedStatusResultsArray.sort(rowSortFunction);
-    const formattedStatusResults = sortedStatusRows.forEach(row =>
-      getFormattedStatusResult(row)
-    );
 
     const table: string = new Table().createTable(
       (sortedStatusRows as unknown) as Row[],
