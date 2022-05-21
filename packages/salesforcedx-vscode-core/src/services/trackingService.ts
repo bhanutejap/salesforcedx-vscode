@@ -78,7 +78,16 @@ class SourceStatusSummary {
 export class TrackingService {
   private static _instance: TrackingService;
 
-  public static getSourceStatusSummary = async (): Promise<string> => {
+  public static get instance() {
+    if (TrackingService._instance === undefined) {
+      TrackingService._instance = new TrackingService();
+    }
+    return TrackingService._instance;
+  }
+
+  private constructor() {}
+
+  public getSourceStatusSummary = async (): Promise<string> => {
     // 1. get Status from STL
     const projectPath = getRootWorkspacePath();
     const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
@@ -104,15 +113,6 @@ export class TrackingService {
     );
     return summary.asString();
   };
-
-  public static get instance() {
-    if (TrackingService._instance === undefined) {
-      TrackingService._instance = new TrackingService();
-    }
-    return TrackingService._instance;
-  }
-
-  private constructor() {}
 }
 
 /**
