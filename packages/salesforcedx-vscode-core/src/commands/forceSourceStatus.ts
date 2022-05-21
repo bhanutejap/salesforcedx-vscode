@@ -100,7 +100,6 @@ export async function forceSourceStatus(
   } else {
     // Execute using Source Tracking library
     const sourceStatusOptions = {
-      local: true,
       remote: !(flag && flag === '--local')
     };
     const sourceStatusSummary: string = await TrackingService.instance.getSourceStatusSummary(
