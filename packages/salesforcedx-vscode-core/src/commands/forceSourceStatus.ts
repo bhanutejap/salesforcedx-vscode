@@ -9,11 +9,9 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { TrackingService } from '../services/trackingService';
-
 import {
   CommandParams,
   CommandVersion,
@@ -48,27 +46,6 @@ export const statusCommandLegacy: CommandParams = {
   description: { default: 'force_source_legacy_status_text' },
   logName: { default: 'force_source_legacy_status' }
 };
-
-type StatusActualState = 'Deleted' | 'Add' | 'Changed' | 'Unchanged';
-type StatusOrigin = 'Local' | 'Remote';
-export interface StatusResult {
-  state: string;
-  fullName: string;
-  type: string;
-  filePath?: string;
-  ignored?: boolean;
-  conflict?: boolean;
-  actualState?: StatusActualState;
-  origin: StatusOrigin;
-}
-
-interface FormattedStatusResult {
-  state: string;
-  fullName: string;
-  type: string;
-  filePath?: string;
-  ignored?: string;
-}
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   private flag: SourceStatusFlags | undefined;

@@ -63,8 +63,7 @@ class SourceStatusSummary {
 
     // sort the rows and create a table
     const sortedStatusRows = convertedStatusResultsArray.sort(rowSortFunction);
-
-    const sortedRowsAllStringValues = sortedStatusRows.forEach(row =>
+    const formattedStatusResults = sortedStatusRows.forEach(row =>
       getFormattedStatusResult(row)
     );
 
