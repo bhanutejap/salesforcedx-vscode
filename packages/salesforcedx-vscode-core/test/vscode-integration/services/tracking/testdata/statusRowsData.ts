@@ -1,6 +1,6 @@
 export const statusRowsData = [
   {
-    type: 'apexClass',
+    type: 'ApexClass',
     origin: 'local',
     state: 'add',
     fullname: 'ChangePasswordController',
