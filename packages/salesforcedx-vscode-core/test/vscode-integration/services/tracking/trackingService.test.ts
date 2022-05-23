@@ -16,19 +16,16 @@ import { statusSummaryString } from './testdata/statusSummaryStrings';
 describe('getSourceStatusSummary', () => {
   it('Should return a formatted string when local and remote changes exist', async () => {
     // Arrange
-    const data = statusRowsData;
     const sourceTrackingStub = sinon.createStubInstance(SourceTracking);
     sourceTrackingStub.getStatus.returns(statusRowsData);
     const trackingServiceSUT: TrackingService = new TrackingService(
       sourceTrackingStub
     );
-    // expect(TrackingService._tracking).to.equal(sourceTrackingStub);
 
     // Act
     const output: string = await trackingServiceSUT.getSourceStatusSummary({});
 
     // Assert
-    // console.log(statusRowsData);
-    console.log(output);
+    expect(output).to.equal(statusSummaryString);
   });
 });
