@@ -3,7 +3,7 @@ export const statusRowsData = [
     type: 'ApexClass',
     origin: 'local',
     state: 'add',
-    fullname: 'ChangePasswordController',
+    fullName: 'ChangePasswordController',
     ignored: true,
     filepath: 'force-app/main/default/classes/ChangePasswordController.cls',
     conflict: false
