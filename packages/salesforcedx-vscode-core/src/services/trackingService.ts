@@ -74,17 +74,13 @@ class SourceStatusSummary {
 }
 
 export class TrackingService {
-  private static _instance: TrackingService;
-  private static _tracking: SourceTracking;
+  private _tracking: SourceTracking | undefined;
 
-  public static get instance() {
-    if (TrackingService._instance === undefined) {
-      TrackingService._instance = new TrackingService();
+  public constructor(tracking?: SourceTracking) {
+    if (tracking !== undefined) {
+      this._tracking = tracking;
     }
-    return TrackingService._instance;
   }
-
-  private constructor() {}
 
   public getSourceStatusSummary = async ({
     local = true,
@@ -102,10 +98,10 @@ export class TrackingService {
   };
 
   private async tracking() {
-    if (TrackingService._tracking === undefined) {
-      TrackingService._tracking = await this.getSourceTracking();
+    if (this._tracking === undefined) {
+      this._tracking = await this.getSourceTracking();
     }
-    return TrackingService._tracking;
+    return this._tracking;
   }
 
   private async getSourceTracking(): Promise<SourceTracking> {
@@ -165,6 +161,8 @@ const stateMap = new Map<StatusOutputRow['state'], StatusResult['actualState']>(
 
 // sort order is state, type, fullname
 const rowSortFunction = (a: StatusResult, b: StatusResult): number => {
+  console.log(JSON.stringify(a));
+  console.log(JSON.stringify(b));
   if (a.state.toLowerCase() === b.state.toLowerCase()) {
     if (a.type.toLowerCase() === b.type.toLowerCase()) {
       return a.fullName.toLowerCase() < b.fullName.toLowerCase() ? -1 : 1;
