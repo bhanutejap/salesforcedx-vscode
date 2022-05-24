@@ -12,7 +12,7 @@ import { getRootWorkspacePath, OrgAuthInfo } from '../util';
 
 type StatusActualState = 'Deleted' | 'Add' | 'Changed' | 'Unchanged';
 type StatusOrigin = 'Local' | 'Remote';
-export interface StatusResult {
+interface StatusResult {
   state: string;
   fullName: string;
   type: string;
@@ -23,12 +23,6 @@ export interface StatusResult {
   origin: StatusOrigin;
 }
 
-function getFormattedStatusResult(result: StatusResult): FormattedStatusResult {
-  return Object.assign(result, {
-    ignored: result.ignored ? result.ignored.toString() : '',
-    filePath: result.filePath ? result.filePath : ''
-  });
-}
 interface FormattedStatusResult {
   state: string;
   fullName: string;
@@ -36,23 +30,24 @@ interface FormattedStatusResult {
   filePath?: string;
   ignored?: string;
 }
-
 class SourceStatusSummary {
-  constructor(private rows: StatusOutputRow[]) {}
+  constructor(private statusOutputRows: StatusOutputRow[]) {}
 
   public format(): string {
-    const convertedStatusResultsArray = this.rows.map(result =>
-      this.resultConverter(result)
+    const statusResults = this.statusOutputRows.map(row =>
+      this.resultConverter(row)
     );
 
-    if (convertedStatusResultsArray.length === 0) {
+    if (statusResults.length === 0) {
       return 'No local or remote changes found.';
     }
 
     // sort the rows and create a table
-    const sortedStatusRows = convertedStatusResultsArray.sort(rowSortFunction);
+    const sortedStatusResults = statusResults.sort(this.rowSortFunction);
 
-    sortedStatusRows.forEach(row => getFormattedStatusResult(row));
+    sortedStatusResults.forEach(statusResult =>
+      this.convertToTableRow(statusResult)
+    );
 
     const baseColumns = [
       { label: 'STATE', key: 'state' },
@@ -60,12 +55,12 @@ class SourceStatusSummary {
       { label: 'TYPE', key: 'type' },
       { label: 'PROJECT PATH', key: 'filePath' }
     ];
-    const columns = convertedStatusResultsArray.some(row => row.ignored)
+    const columns = statusResults.some(result => result.ignored)
       ? [{ label: 'IGNORED', key: 'ignored' }, ...baseColumns]
       : baseColumns;
 
     const table: string = new Table().createTable(
-      (sortedStatusRows as unknown) as Row[],
+      (sortedStatusResults as unknown) as Row[],
       columns
     );
     return table;
@@ -110,6 +105,24 @@ class SourceStatusSummary {
     ['modify', 'Changed'],
     ['nondelete', 'Changed']
   ]);
+
+  // sort order is state, type, fullname
+  private rowSortFunction = (a: StatusResult, b: StatusResult): number => {
+    if (a.state.toLowerCase() === b.state.toLowerCase()) {
+      if (a.type.toLowerCase() === b.type.toLowerCase()) {
+        return a.fullName.toLowerCase() < b.fullName.toLowerCase() ? -1 : 1;
+      }
+      return a.type.toLowerCase() < b.type.toLowerCase() ? -1 : 1;
+    }
+    return a.state.toLowerCase() < b.state.toLowerCase() ? -1 : 1;
+  };
+
+  private convertToTableRow(result: StatusResult): FormattedStatusResult {
+    return Object.assign(result, {
+      ignored: result.ignored ? result.ignored.toString() : '',
+      filePath: result.filePath ? result.filePath : ''
+    });
+  }
 }
 
 export class TrackingService {
@@ -160,16 +173,3 @@ export class TrackingService {
     return tracking;
   }
 }
-
-// sort order is state, type, fullname
-const rowSortFunction = (a: StatusResult, b: StatusResult): number => {
-  console.log(JSON.stringify(a));
-  console.log(JSON.stringify(b));
-  if (a.state.toLowerCase() === b.state.toLowerCase()) {
-    if (a.type.toLowerCase() === b.type.toLowerCase()) {
-      return a.fullName.toLowerCase() < b.fullName.toLowerCase() ? -1 : 1;
-    }
-    return a.type.toLowerCase() < b.type.toLowerCase() ? -1 : 1;
-  }
-  return a.state.toLowerCase() < b.state.toLowerCase() ? -1 : 1;
-};
