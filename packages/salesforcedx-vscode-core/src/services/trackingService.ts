@@ -42,7 +42,7 @@ class SourceStatusSummary {
 
   public format(): string {
     const convertedStatusResultsArray = this.rows.map(result =>
-      resultConverter(result)
+      this.resultConverter(result)
     );
 
     if (convertedStatusResultsArray.length === 0) {
@@ -70,14 +70,54 @@ class SourceStatusSummary {
     );
     return table;
   }
+
+  /**
+   * STL provides a more useful json output.
+   * This function makes it consistent with the Status command's json.
+   */
+  private resultConverter = (input: StatusOutputRow): StatusResult => {
+    const { fullName, type, ignored, filePath, conflict } = input;
+    const origin = SourceStatusSummary.originMap.get(input.origin) || 'Local';
+    const actualState = SourceStatusSummary.stateMap.get(input.state);
+    return {
+      fullName,
+      type,
+      // this string became the place to store information.
+      // The JSON now breaks out that info but preserves this property for backward compatibility
+      state: `${origin} ${actualState}${conflict ? ' (Conflict)' : ''}`,
+      ignored,
+      filePath,
+      origin,
+      actualState,
+      conflict
+    };
+  };
+
+  private static originMap = new Map<
+    StatusOutputRow['origin'],
+    StatusResult['origin']
+  >([
+    ['local', 'Local'],
+    ['remote', 'Remote']
+  ]);
+
+  private static stateMap = new Map<
+    StatusOutputRow['state'],
+    StatusResult['actualState']
+  >([
+    ['delete', 'Deleted'],
+    ['add', 'Add'],
+    ['modify', 'Changed'],
+    ['nondelete', 'Changed']
+  ]);
 }
 
 export class TrackingService {
-  private _tracking: SourceTracking | undefined;
+  private _sourceTracking: SourceTracking | undefined;
 
   public constructor(tracking?: SourceTracking) {
     if (tracking !== undefined) {
-      this._tracking = tracking;
+      this._sourceTracking = tracking;
     }
   }
 
@@ -85,25 +125,24 @@ export class TrackingService {
     local = true,
     remote = true
   }): Promise<string> => {
-    const tracking = await this.tracking();
-    const statusOutputRows = await tracking.getStatus({
+    const statusResponse = await (await this.sourceTracking()).getStatus({
       local,
       remote
     });
-    const summary: SourceStatusSummary = new SourceStatusSummary(
-      statusOutputRows
+    const sourceStatusSummary: SourceStatusSummary = new SourceStatusSummary(
+      statusResponse
     );
-    return summary.format();
+    return sourceStatusSummary.format();
   };
 
-  private async tracking() {
-    if (this._tracking === undefined) {
-      this._tracking = await this.getSourceTracking();
+  private async sourceTracking() {
+    if (this._sourceTracking === undefined) {
+      this._sourceTracking = await this.createSourceTracking();
     }
-    return this._tracking;
+    return this._sourceTracking;
   }
 
-  private async getSourceTracking(): Promise<SourceTracking> {
+  private async createSourceTracking(): Promise<SourceTracking> {
     const projectPath = getRootWorkspacePath();
     const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
     const org: Org = await Org.create({ aliasOrUsername: username });
@@ -121,42 +160,6 @@ export class TrackingService {
     return tracking;
   }
 }
-
-/**
- * STL provides a more useful json output.
- * This function makes it consistent with the Status command's json.
- */
-const resultConverter = (input: StatusOutputRow): StatusResult => {
-  const { fullName, type, ignored, filePath, conflict } = input;
-  const origin = originMap.get(input.origin) || 'Local';
-  const actualState = stateMap.get(input.state);
-  return {
-    fullName,
-    type,
-    // this string became the place to store information.
-    // The JSON now breaks out that info but preserves this property for backward compatibility
-    state: `${origin} ${actualState}${conflict ? ' (Conflict)' : ''}`,
-    ignored,
-    filePath,
-    origin,
-    actualState,
-    conflict
-  };
-};
-
-const originMap = new Map<StatusOutputRow['origin'], StatusResult['origin']>([
-  ['local', 'Local'],
-  ['remote', 'Remote']
-]);
-
-const stateMap = new Map<StatusOutputRow['state'], StatusResult['actualState']>(
-  [
-    ['delete', 'Deleted'],
-    ['add', 'Add'],
-    ['modify', 'Changed'],
-    ['nondelete', 'Changed']
-  ]
-);
 
 // sort order is state, type, fullname
 const rowSortFunction = (a: StatusResult, b: StatusResult): number => {
