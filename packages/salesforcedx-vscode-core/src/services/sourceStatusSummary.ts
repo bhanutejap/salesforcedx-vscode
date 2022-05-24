@@ -1,17 +1,12 @@
-import { Org, SfdxProject } from '@salesforce/core';
 import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import {
-  SourceTracking,
-  SourceTrackingOptions,
-  StatusOutputRow
-} from '@salesforce/source-tracking';
-import { getRootWorkspacePath, OrgAuthInfo } from '../util';
+import { StatusOutputRow } from '@salesforce/source-tracking';
 
 type StatusActualState = 'Deleted' | 'Add' | 'Changed' | 'Unchanged';
 type StatusOrigin = 'Local' | 'Remote';
+
 interface StatusResult {
   state: string;
   fullName: string;
@@ -30,7 +25,8 @@ interface FormattedStatusResult {
   filePath?: string;
   ignored?: string;
 }
-class SourceStatusSummary {
+
+export class SourceStatusSummary {
   constructor(private statusOutputRows: StatusOutputRow[]) {}
 
   public format(): string {
@@ -45,25 +41,7 @@ class SourceStatusSummary {
     // sort the rows and create a table
     const sortedStatusResults = statusResults.sort(this.rowSortFunction);
 
-    sortedStatusResults.forEach(statusResult =>
-      this.convertToTableRow(statusResult)
-    );
-
-    const baseColumns = [
-      { label: 'STATE', key: 'state' },
-      { label: 'FULL NAME', key: 'fullName' },
-      { label: 'TYPE', key: 'type' },
-      { label: 'PROJECT PATH', key: 'filePath' }
-    ];
-    const columns = statusResults.some(result => result.ignored)
-      ? [{ label: 'IGNORED', key: 'ignored' }, ...baseColumns]
-      : baseColumns;
-
-    const table: string = new Table().createTable(
-      (sortedStatusResults as unknown) as Row[],
-      columns
-    );
-    return table;
+    return new StatusResultsTable(sortedStatusResults).value();
   }
 
   /**
@@ -116,60 +94,39 @@ class SourceStatusSummary {
     }
     return a.state.toLowerCase() < b.state.toLowerCase() ? -1 : 1;
   };
+}
+
+class StatusResultsTable {
+  private static baseColumns = [
+    { label: 'STATE', key: 'state' },
+    { label: 'FULL NAME', key: 'fullName' },
+    { label: 'TYPE', key: 'type' },
+    { label: 'PROJECT PATH', key: 'filePath' }
+  ];
+
+  private columns = this.statusResults.some(result => result.ignored)
+    ? [{ label: 'IGNORED', key: 'ignored' }, ...StatusResultsTable.baseColumns]
+    : StatusResultsTable.baseColumns;
+
+  constructor(private statusResults: StatusResult[]) {}
+
+  public value(): string {
+    this.statusResults.forEach(statusResult =>
+      this.convertToTableRow(statusResult)
+    );
+
+    const table: string = new Table().createTable(
+      (this.statusResults as unknown) as Row[],
+      this.columns
+    );
+
+    return table;
+  }
 
   private convertToTableRow(result: StatusResult): FormattedStatusResult {
     return Object.assign(result, {
       ignored: result.ignored ? result.ignored.toString() : '',
       filePath: result.filePath ? result.filePath : ''
     });
-  }
-}
-
-export class TrackingService {
-  private _sourceTracking: SourceTracking | undefined;
-
-  public constructor(tracking?: SourceTracking) {
-    if (tracking !== undefined) {
-      this._sourceTracking = tracking;
-    }
-  }
-
-  public getSourceStatusSummary = async ({
-    local = true,
-    remote = true
-  }): Promise<string> => {
-    const statusResponse = await (await this.sourceTracking()).getStatus({
-      local,
-      remote
-    });
-    const sourceStatusSummary: SourceStatusSummary = new SourceStatusSummary(
-      statusResponse
-    );
-    return sourceStatusSummary.format();
-  };
-
-  private async sourceTracking() {
-    if (this._sourceTracking === undefined) {
-      this._sourceTracking = await this.createSourceTracking();
-    }
-    return this._sourceTracking;
-  }
-
-  private async createSourceTracking(): Promise<SourceTracking> {
-    const projectPath = getRootWorkspacePath();
-    const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
-    const org: Org = await Org.create({ aliasOrUsername: username });
-    const project = await SfdxProject.resolve(projectPath);
-    const options: SourceTrackingOptions = {
-      org,
-      project
-    };
-
-    // Change the environment to get the node process to use
-    // the correct current working directory (process.cwd).
-    // Without this, process.cwd() returns "'/'" and SourceTracking.create() fails.
-    process.chdir(projectPath);
-    const tracking = await SourceTracking.create(options);
-    return tracking;
   }
 }

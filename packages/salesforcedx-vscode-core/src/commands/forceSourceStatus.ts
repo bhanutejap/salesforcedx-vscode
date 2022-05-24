@@ -11,7 +11,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { TrackingService } from '../services/trackingService';
+import { SourceTrackingService } from '../services/sourceTrackingService';
 import {
   CommandParams,
   CommandVersion,
@@ -99,7 +99,7 @@ export async function forceSourceStatus(
     await commandlet.run();
   } else {
     // Execute using Source Tracking library
-    const trackingService = new TrackingService();
+    const trackingService = new SourceTrackingService();
     const sourceStatusOptions = {
       remote: !(flag && flag === '--local')
     };

@@ -8,23 +8,24 @@
 import { SourceTracking } from '@salesforce/source-tracking';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { TrackingService } from '../../../../src/services/trackingService';
-import { statusRowsData } from './testdata/statusRowsData';
-import { statusSummaryString } from './testdata/statusSummaryStrings';
+import { SourceTrackingService } from '../../../../src/services/sourceTrackingService';
+import { testData } from './testdata/sourceTracking';
 
 describe('getSourceStatusSummary', () => {
   it('Should return a properly formatted string when local and remote changes exist.', async () => {
     // Arrange
     const sourceTrackingStub = sinon.createStubInstance(SourceTracking);
-    sourceTrackingStub.getStatus.returns(statusRowsData);
-    const trackingServiceSUT: TrackingService = new TrackingService(
+    sourceTrackingStub.getStatus.returns(testData.statusOutputRows);
+    const sourceTrackingServiceSUT: SourceTrackingService = new SourceTrackingService(
       sourceTrackingStub
     );
 
     // Act
-    const output: string = await trackingServiceSUT.getSourceStatusSummary({});
+    const formattedOutput: string = await sourceTrackingServiceSUT.getSourceStatusSummary(
+      {}
+    );
 
     // Assert
-    expect(output).to.equal(statusSummaryString);
+    expect(formattedOutput).to.equal(testData.statusSummaryString);
   });
 });
