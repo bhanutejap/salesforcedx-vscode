@@ -51,9 +51,8 @@ class SourceStatusSummary {
 
     // sort the rows and create a table
     const sortedStatusRows = convertedStatusResultsArray.sort(rowSortFunction);
-    const formattedStatusResults = sortedStatusRows.forEach(row =>
-      getFormattedStatusResult(row)
-    );
+
+    sortedStatusRows.forEach(row => getFormattedStatusResult(row));
 
     const baseColumns = [
       { label: 'STATE', key: 'state' },
