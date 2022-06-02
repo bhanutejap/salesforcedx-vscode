@@ -4,12 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { channelService } from '../channels';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
+// import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/src';
+// import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
+// import { CancellationToken, Progress } from 'vscode';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { SourceTrackingService } from '../services/sourceTrackingService';
 import {
@@ -46,6 +50,38 @@ export const statusCommandLegacy: CommandParams = {
   description: { default: 'force_source_legacy_status_text' },
   logName: { default: 'force_source_legacy_status' }
 };
+
+export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<{
+  id: string;
+}> {
+  private flag: SourceStatusFlags | undefined;
+
+  constructor(flag?: SourceStatusFlags) {
+    // todo: pass these in constructor?
+    super(
+      nls.localize('force_source_status_text'),
+      'force_source_status',
+      OUTPUT_CHANNEL
+    );
+    this.flag = flag;
+  }
+
+  public async run(
+    response: ContinueResponse<{ id: string }>
+  ): Promise<boolean> {
+    const trackingService = new SourceTrackingService();
+    const sourceStatusOptions = {
+      remote: !(this.flag && this.flag === SourceStatusFlags.Local)
+    };
+    const sourceStatusSummary: string = await trackingService.getSourceStatusSummary(
+      sourceStatusOptions
+    );
+    channelService.appendLine('Source Status');
+    channelService.appendLine(sourceStatusSummary);
+    channelService.showChannelOutput();
+    return true;
+  }
+}
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   private flag: SourceStatusFlags | undefined;
@@ -99,15 +135,11 @@ export async function forceSourceStatus(
     await commandlet.run();
   } else {
     // Execute using Source Tracking library
-    const trackingService = new SourceTrackingService();
-    const sourceStatusOptions = {
-      remote: !(flag && flag === SourceStatusFlags.Local)
-    };
-    const sourceStatusSummary: string = await trackingService.getSourceStatusSummary(
-      sourceStatusOptions
+    const commandlet = new SfdxCommandlet(
+      new SfdxWorkspaceChecker(),
+      new EmptyParametersGatherer(),
+      new SourceTrackingGetStatusExecutor(flag)
     );
-    channelService.appendLine('Source Status');
-    channelService.appendLine(sourceStatusSummary);
-    channelService.showChannelOutput();
+    await commandlet.run();
   }
 }
