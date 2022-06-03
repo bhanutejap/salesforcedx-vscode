@@ -114,14 +114,10 @@ export async function forceSourceStatus(
   this: FlagParameter<SourceStatusFlags>
 ) {
   const { flag, commandVersion } = this || {};
-  const command =
-    commandVersion === CommandVersion.Legacy
-      ? statusCommandLegacy
-      : statusCommand;
 
   if (commandVersion === CommandVersion.Legacy) {
     // Execute using SFDX CLI
-    const executor = new ForceSourceStatusExecutor(flag, command);
+    const executor = new ForceSourceStatusExecutor(flag, statusCommandLegacy);
     const commandlet = new SfdxCommandlet(
       workspaceChecker,
       parameterGatherer,
