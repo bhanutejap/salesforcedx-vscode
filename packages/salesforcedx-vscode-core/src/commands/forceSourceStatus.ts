@@ -49,24 +49,21 @@ export const statusCommandLegacy: CommandParams = {
   logName: { default: 'force_source_legacy_status' }
 };
 
-export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<{
-  id: string;
-}> {
+export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
+  string
+> {
   private flag: SourceStatusFlags | undefined;
 
-  constructor(flag?: SourceStatusFlags) {
-    // todo: pass these in constructor?
-    super(
-      nls.localize('force_source_status_text'),
-      'force_source_status',
-      OUTPUT_CHANNEL
-    );
+  constructor(
+    executionName: string,
+    logName: string,
+    flag?: SourceStatusFlags | undefined
+  ) {
+    super(nls.localize(executionName), logName, OUTPUT_CHANNEL);
     this.flag = flag;
   }
 
-  public async run(
-    response: ContinueResponse<{ id: string }>
-  ): Promise<boolean> {
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
     const trackingService = new SourceTrackingService();
     const sourceStatusOptions = {
       remote: !(this.flag && this.flag === SourceStatusFlags.Local)
@@ -133,10 +130,18 @@ export async function forceSourceStatus(
     await commandlet.run();
   } else {
     // Execute using Source Tracking library
+    const executionName =
+      flag == SourceStatusFlags.Local
+        ? 'force_source_status_local_text'
+        : 'force_source_status_text';
+    const logName =
+      flag == SourceStatusFlags.Local
+        ? 'force_source_status_local'
+        : 'force_source_status';
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
       new EmptyParametersGatherer(),
-      new SourceTrackingGetStatusExecutor(flag)
+      new SourceTrackingGetStatusExecutor(executionName, logName, flag)
     );
     await commandlet.run();
   }
