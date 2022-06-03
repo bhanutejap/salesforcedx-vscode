@@ -130,14 +130,13 @@ export async function forceSourceStatus(
     await commandlet.run();
   } else {
     // Execute using Source Tracking library
-    const executionName =
-      flag == SourceStatusFlags.Local
-        ? 'force_source_status_local_text'
-        : 'force_source_status_text';
-    const logName =
-      flag == SourceStatusFlags.Local
-        ? 'force_source_status_local'
-        : 'force_source_status';
+    const isOnlyLocalChanges = flag === SourceStatusFlags.Local.toString();
+    const executionName = isOnlyLocalChanges
+      ? 'force_source_status_local_text'
+      : 'force_source_status_text';
+    const logName = isOnlyLocalChanges
+      ? 'force_source_status_local'
+      : 'force_source_status';
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
       new EmptyParametersGatherer(),
