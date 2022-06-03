@@ -38,7 +38,6 @@ export class SourceStatusSummary {
       return 'No local or remote changes found.';
     }
 
-    // sort the rows and create a table
     const sortedStatusResults = statusResults.sort(this.rowSortFunction);
 
     return new StatusResultsTable(sortedStatusResults).value();
