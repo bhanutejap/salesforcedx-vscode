@@ -9,7 +9,7 @@
     "node": ">=16.13.0"
   },
   "dependencies": {
-    "@salesforce/source-tracking": "2.0.0",
+    "@salesforce/source-tracking": "1.5.0",
     "node": "^16.13.0",
     "npm": "^6"
   },

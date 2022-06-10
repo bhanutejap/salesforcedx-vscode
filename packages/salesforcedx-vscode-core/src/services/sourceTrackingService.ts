@@ -26,6 +26,8 @@ export class SourceTrackingService {
     local = true,
     remote = true
   }): Promise<string> => {
+    // await (await this.sourceTracking()).ensureLocalTracking();
+    // await (await this.sourceTracking()).ensureRemoteTracking();
     const statusResponse = await (await this.sourceTracking()).getStatus({
       local,
       remote

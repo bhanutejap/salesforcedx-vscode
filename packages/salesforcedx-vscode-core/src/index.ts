@@ -68,7 +68,10 @@ import {
   initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
   SourceStatusFlags,
-  turnOffLogging
+  turnOffLogging,
+  viewAllChanges,
+  viewLocalChanges,
+  viewRemoteChanges
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
@@ -233,17 +236,15 @@ function registerCommands(
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
-    forceSourceStatus
+    viewAllChanges
   );
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.local',
-    forceSourceStatus,
-    flagStatusLocal
+    viewLocalChanges
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.remote',
-    forceSourceStatus,
-    flagStatusRemote
+    viewRemoteChanges
   );
   const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.status',
@@ -579,10 +580,7 @@ async function setupOrgBrowser(
     }
   );
 
-  vscode.commands.registerCommand(
-    'sfdx.create.manifest',
-    forceCreateManifest
-  );
+  vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
 }
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
@@ -590,7 +588,12 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   const { name, aiKey, version } = require(extensionContext.asAbsolutePath(
     './package.json'
   ));
-  await telemetryService.initializeService(extensionContext, name, aiKey, version);
+  await telemetryService.initializeService(
+    extensionContext,
+    name,
+    aiKey,
+    version
+  );
   showTelemetryMessage(extensionContext);
 
   // Task View
@@ -634,7 +637,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     return internalApi;
   }
 
-  FunctionService.instance.handleDidStartTerminateDebugSessions(extensionContext);
+  FunctionService.instance.handleDidStartTerminateDebugSessions(
+    extensionContext
+  );
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
