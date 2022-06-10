@@ -53,8 +53,8 @@ export async function viewAllChanges() {
   const executionName = 'force_source_status_text'; // "SFDX: View All Changes (Local and in Default Scratch Org)"
   const logName = 'force_source_status';
   const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new EmptyParametersGatherer(),
+    workspaceChecker,
+    parameterGatherer,
     new SourceTrackingGetStatusExecutor(executionName, logName, {
       local: true,
       remote: true
@@ -67,8 +67,8 @@ export async function viewLocalChanges() {
   const executionName = 'force_source_status_local_text';
   const logName = 'force_source_status_local';
   const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new EmptyParametersGatherer(),
+    workspaceChecker,
+    parameterGatherer,
     new SourceTrackingGetStatusExecutor(executionName, logName, {
       local: true,
       remote: false
@@ -81,8 +81,8 @@ export async function viewRemoteChanges() {
   const executionName = 'force_source_status_remote_text';
   const logName = 'force_source_status_remote';
   const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new EmptyParametersGatherer(),
+    workspaceChecker,
+    parameterGatherer,
     new SourceTrackingGetStatusExecutor(executionName, logName, {
       local: false,
       remote: true
