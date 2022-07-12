@@ -5,20 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { GlobalInfo } from '@salesforce/core';
+import { StateAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
 
-// tslint:disable: no-unused-expression
 describe('OrgAuthInfo', () => {
-  let env: SinonSandbox;
+  let sandbox: SinonSandbox;
   beforeEach(async () => {
-    env = createSandbox();
+    sandbox = createSandbox();
   });
-  afterEach(() => env.restore());
+  afterEach(() => sandbox.restore());
 
   describe('getUsername', () => {
     const username = 'user@test.test';
@@ -30,8 +29,8 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should return the username for the matching alias', async () => {
-      const info = await GlobalInfo.create();
-      env
+      const info = await StateAggregator.getInstance();
+      sandbox
         .stub(info.aliases, 'getUsername')
         .withArgs(alias)
         .returns(username);
@@ -41,29 +40,39 @@ describe('OrgAuthInfo', () => {
 
   describe('getDefaultDevHubUsernameOrAlias', () => {
     it('should return notification if there is no dev hub set', async () => {
-      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
       configUtilStub.returns(undefined);
-      const infoMessageStub = env.stub(vscode.window, 'showInformationMessage');
+      const infoMessageStub = sandbox.stub(
+        vscode.window,
+        'showInformationMessage'
+      );
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
-      expect(infoMessageStub.calledOnce).to.be.true;
+      expect(infoMessageStub.calledOnce).to.equal(true);
       configUtilStub.restore();
       infoMessageStub.restore();
     });
 
     it('should run authorize a dev hub command if button clicked', async () => {
-      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
       configUtilStub.returns(undefined);
-      const showMessageStub = env.stub(vscode.window, 'showInformationMessage');
+      const showMessageStub = sandbox.stub(
+        vscode.window,
+        'showInformationMessage'
+      );
       showMessageStub.returns(nls.localize('notification_make_default_dev'));
-      const executeCommandStub = env.stub(vscode.commands, 'executeCommand');
+      const executeCommandStub = sandbox.stub(
+        vscode.commands,
+        'executeCommand'
+      );
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
-      expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.be
-        .true;
-      expect(showMessageStub.calledOnce).to.be.true;
+      expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.equal(
+        true
+      );
+      expect(showMessageStub.calledOnce).to.equal(true);
 
       configUtilStub.restore();
       showMessageStub.restore();
@@ -71,13 +80,16 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should not show a message if there is a dev hub set', async () => {
-      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
       configUtilStub.returns('username');
-      const infoMessageStub = env.stub(vscode.window, 'showInformationMessage');
+      const infoMessageStub = sandbox.stub(
+        vscode.window,
+        'showInformationMessage'
+      );
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
-      expect(infoMessageStub.calledOnce).to.be.false;
+      expect(infoMessageStub.calledOnce).to.equal(false);
       configUtilStub.restore();
       infoMessageStub.restore();
     });
@@ -93,7 +105,7 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should use default username/alias when invoked without argument', async () => {
-      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
       configUtilStub.returns('defaultUsername');
 
       const connection = await OrgAuthInfo.getConnection();
