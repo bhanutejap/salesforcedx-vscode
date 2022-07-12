@@ -48,45 +48,41 @@ export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
+function getCommandletFor(
+  executor: SourceTrackingGetStatusExecutor
+): SfdxCommandlet<{}> {
+  return new SfdxCommandlet(workspaceChecker, parameterGatherer, executor);
+}
 
 export async function viewAllChanges() {
   const executionName = 'force_source_status_text'; // "SFDX: View All Changes (Local and in Default Scratch Org)"
   const logName = 'force_source_status';
-  const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    new SourceTrackingGetStatusExecutor(executionName, logName, {
-      local: true,
-      remote: true
-    })
-  );
+  const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
+    local: true,
+    remote: true
+  });
+  const commandlet = getCommandletFor(executor);
   await commandlet.run();
 }
 
 export async function viewLocalChanges() {
-  const executionName = 'force_source_status_local_text';
+  const executionName = 'force_source_status_local_text'; // "SFDX: View Local Changes"
   const logName = 'force_source_status_local';
-  const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    new SourceTrackingGetStatusExecutor(executionName, logName, {
-      local: true,
-      remote: false
-    })
-  );
+  const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
+    local: true,
+    remote: false
+  });
+  const commandlet = getCommandletFor(executor);
   await commandlet.run();
 }
 
 export async function viewRemoteChanges() {
-  const executionName = 'force_source_status_remote_text';
+  const executionName = 'force_source_status_remote_text'; // "SFDX: View Changes in Default Scratch Org"
   const logName = 'force_source_status_remote';
-  const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    new SourceTrackingGetStatusExecutor(executionName, logName, {
-      local: false,
-      remote: true
-    })
-  );
+  const executor = new SourceTrackingGetStatusExecutor(executionName, logName, {
+    local: false,
+    remote: true
+  });
+  const commandlet = getCommandletFor(executor);
   await commandlet.run();
 }
