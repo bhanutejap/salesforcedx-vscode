@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Org, SfdxProject } from '@salesforce/core';
+import { Org, SfProject } from '@salesforce/core';
 import {
   SourceTracking,
   SourceTrackingOptions
@@ -47,7 +47,7 @@ export class SourceTrackingService {
     const projectPath = getRootWorkspacePath();
     const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
     const org: Org = await Org.create({ aliasOrUsername: username });
-    const project = await SfdxProject.resolve(projectPath);
+    const project = await SfProject.resolve(projectPath);
     const options: SourceTrackingOptions = {
       org,
       project
