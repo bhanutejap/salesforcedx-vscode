@@ -43,18 +43,20 @@ export class ConfigUtil {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
           isGlobal: false,
-          rootFolder: path.join(rootPath, '.sf'),
-          filename: 'config.json'
+          rootFolder: path.join(rootPath, '.sfdx'),
+          filename: 'sfdx-config.json'
         });
         const localValue = myLocalConfig.get(key);
         if (!(localValue === null || localValue === undefined)) {
           return localValue;
         }
       } catch (err) {
-        TelemetryService.getInstance().sendException(
-          'get_config_value_local',
-          err.message
-        );
+        if (err instanceof Error) {
+          TelemetryService.getInstance().sendException(
+            'get_config_value_local',
+            err.message
+          );
+        }
         return undefined;
       }
     }
@@ -66,10 +68,12 @@ export class ConfigUtil {
           return globalValue;
         }
       } catch (err) {
-        TelemetryService.getInstance().sendException(
-          'get_config_value_global',
-          err.message
-        );
+        if (err instanceof Error) {
+          TelemetryService.getInstance().sendException(
+            'get_config_value_global',
+            err.message
+          );
+        }
         return undefined;
       }
     }
