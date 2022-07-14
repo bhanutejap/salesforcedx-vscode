@@ -63,8 +63,7 @@ export class OrgList implements vscode.Disposable {
       try {
         const filePath = path.join(
           await ConfigFile.resolveRootFolder(true),
-          '.sf',
-          authFile.username
+          '.sf/config.json'
         );
         const fileData = readFileSync(filePath, 'utf8');
         authInfoObjects.push(JSON.parse(fileData));
