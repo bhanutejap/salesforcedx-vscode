@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import {
+  AuthInfo,
+  Connection,
+  OrgConfigProperties,
+  StateAggregator
+} from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -102,7 +107,6 @@ describe('OrgAuthInfo', () => {
 
   describe('getConnection', () => {
     const username = 'user@test.test';
-    const alias = 'TestOrg';
     const fakeAuthInfo = {
       authy: true
     };
@@ -133,10 +137,15 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should use default username/alias when invoked without argument', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns(defaultUsername);
+      // Arrange
+      sandbox
+        .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
+        .returns(defaultUsername);
 
+      // Act
       const connection = await OrgAuthInfo.getConnection();
+
+      // Assert
       expect(connection).to.equal(fakeConnection);
       expect(
         authinfoCreateStub.calledWith({
@@ -146,8 +155,6 @@ describe('OrgAuthInfo', () => {
       expect(
         connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
       ).to.equal(true);
-
-      configUtilStub.restore();
     });
   });
 });

@@ -43,7 +43,7 @@ export class OrgList implements vscode.Disposable {
   }
 
   public displayDefaultUsername(defaultUsernameorAlias?: string) {
-    if (!defaultUsernameorAlias) {
+    if (defaultUsernameorAlias) {
       this.statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
@@ -54,25 +54,7 @@ export class OrgList implements vscode.Disposable {
     const authFilesArray = await AuthInfo.listAllAuthorizations().catch(
       err => null
     );
-
-    if (authFilesArray === null || authFilesArray.length === 0) {
-      return null;
-    }
-    const authInfoObjects: FileInfo[] = [];
-    for (const authFile of authFilesArray) {
-      try {
-        const filePath = path.join(
-          await ConfigFile.resolveRootFolder(true),
-          '.sf',
-          authFile.username
-        );
-        const fileData = readFileSync(filePath, 'utf8');
-        authInfoObjects.push(JSON.parse(fileData));
-      } catch (e) {
-        console.log(e);
-      }
-    }
-    return authInfoObjects;
+    return authFilesArray;
   }
 
   public async filterAuthInfo(authInfoObjects: FileInfo[]) {
@@ -107,7 +89,7 @@ export class OrgList implements vscode.Disposable {
         ? today >= new Date(authInfo.expirationDate)
         : false;
       let authListItem =
-        aliases.length > 0
+        aliases?.length > 0
           ? `${aliases} - ${authInfo.username}`
           : authInfo.username;
 
